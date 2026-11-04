@@ -1,7 +1,7 @@
 # P1 验收报告（当前基线）
 
 - 测试命令：`python -m pytest -q`
-- 测试结果：**97 passed**
+- 测试结果：**112 passed**
 - 测试环境：Windows 11、Python 3.11、本地 `.venv`
 - 需求基线：《需求规格说明书_p1阶段.docx》（内部基线，未随仓库发布）
 - 追溯文档：`docs/p1_traceability.md`
@@ -33,7 +33,14 @@
 - `test_idempotency_key_is_stable_across_retries`、`test_idempotency_key_is_stable_across_resume`、`test_idempotency_key_is_stable_across_chained_resumes`：幂等键跨重试和恢复链稳定；
 - `test_checkpoint_is_encrypted_on_disk`、`test_checkpoint_wrong_key_is_rejected`、`test_checkpoint_encrypted_file_requires_key`：检查点默认加密，磁盘不含明文秘密；
 - `test_sync_function_does_not_block_event_loop`、`test_sync_function_step_timeout_is_enforced`、`test_function_tool_sync_does_not_block_event_loop`：同步 callable 不再阻塞事件循环，超时仍生效；
-- `test_concurrent_runs_do_not_share_events`、`test_resume_events_are_isolated_from_original_run`：并发 run 与恢复 run 的事件流互相隔离。
+- `test_concurrent_runs_do_not_share_events`、`test_resume_events_are_isolated_from_original_run`：并发 run 与恢复 run 的事件流互相隔离；
+- `tests/test_parity.py`：嵌套分支、工具失败/重试、LLM 步骤、空 case、取消 5 组脚本/图 parity；
+- `test_branch_resume_parity`：单层分支恢复，`classify`/`route` 跳过、`high` 重跑，脚本/图输出与调用次数一致；
+- `test_graph_branch_resume_route_mismatch`：图模式恢复时路由变化，返回 `E_RESUME_UNSUPPORTED`；
+- `tests/test_parity_limits.py`：步骤超时、任务超时、模型调用上限、步数上限 4 组脚本/图 parity；
+- `test_nested_branch_resume_parity`：外层 + 内层 branch 恢复，跳过 `classify`/`outer`/`inner`，只重跑 `high_eu`；
+- `test_graph_multiple_ends_resume`：图模式多 end 恢复，只执行活跃 end；
+- `tests/test_graph_only.py`：图模式多 end、共享节点/菱形 2 组回归。
 
 ## 2. 最小性能基准
 
@@ -73,4 +80,4 @@ P1 的核心功能、主验收路径、随机 DAG 恢复、路径一致性、事
 
 可以表述为：
 
-> **P1 核心完成，97 个测试通过；剩余差异已在追溯文档中显式记录，完整性能对照实验留待论文实验阶段。**
+> **P1 核心完成，112 个测试通过；剩余差异已在追溯文档中显式记录，完整性能对照实验留待论文实验阶段。**

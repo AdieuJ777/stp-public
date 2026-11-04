@@ -105,7 +105,7 @@ stp/
   docs/dual_mode_matrix.md      脚本/图双模式 parity 审计
   docs/0.3.0_backlog.md         0.3.0 可信执行债务与优先级
   bench/p1_benchmark.py    NFR-007 最小基准脚本
-  tests/             97 个 pytest 用例
+  tests/             112 个 pytest 用例
 ```
 
 P1 需求与验收编号的对应关系见 [`docs/p1_traceability.md`](docs/p1_traceability.md)，
@@ -463,9 +463,10 @@ python bench/p1_benchmark.py
 - 事件 sink 失败统一以 `E_EVENT_LOG` 失败，不产生假成功；
 - 随机 DAG 恢复测试（调用次数 + 输出一致性）；
 - MockLLM（仅测试层）+ 双模式差分比较；
+- 双模式 parity 测试：嵌套分支、工具失败/重试、LLM、空 case、取消、单层/嵌套分支恢复、步骤/任务超时、模型调用/步数限制；图模式多 end、共享节点、多 end 恢复；
 - OpenAI 兼容后端适配器（默认连接本地 Ollama）；
 - 记账 Agent 示例（含检查点恢复 CLI）；
-- 97 个 pytest 用例（全部使用 MockLLM，不依赖 Ollama）。
+- 112 个 pytest 用例（全部使用 MockLLM，不依赖 Ollama）。
 
 ### 未实现（P1 剩余 / P2）
 

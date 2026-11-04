@@ -1,7 +1,7 @@
 # P1 需求证据链复核（2026-11-03）
 
 > 复核基线：《需求规格说明书_p1阶段.docx》（V1.0，内部需求基线，未随仓库发布）
-> 代码基线：`stp/`，97 个测试通过（`python -m pytest -o addopts="" -q` → `97 passed in 6.57s`）
+> 代码基线：`stp/`，112 个测试通过（`python -m pytest -o addopts="" -q` → `112 passed in 7.33s`）
 > 复核方式：docx → Markdown 后逐条对照代码、测试与 `docs/p1_traceability.md` / `docs/p1_acceptance_report.md`
 > 性质：只读复核，未修改任何代码。
 
@@ -15,7 +15,7 @@
 
 | 维度 | 结论 |
 |---|---|
-| 29 条功能需求（FR） | 25 条满足、3 条部分满足、1 条有语义偏差 |
+| 29 条功能需求（FR） | 26 条满足、2 条部分满足、1 条有语义偏差 |
 | 12 条验收测试（AT） | 11 条满足、1 条需限定范围 |
 | 7 条非功能需求（NFR） | 5 条满足、2 条部分 |
 | 11 条完成判定 | 9 条满足、2 条部分 |
@@ -76,7 +76,7 @@
 | FR-022 | ✅ | 重放遍历 + `STEP_SKIPPED`；`test_resume_skips_completed_steps`、`test_random_dag_resume_preserves_calls_and_output` | 调用计数验证，不只看输出 |
 | FR-023 | ⚠️ | `task_id`、协议主版本、`plan_hash`、`spec_hash`；计划/任务变化测试 | 结构哈希不含函数体（见 F-02） |
 | FR-024 | ✅ | `E_CHECKPOINT_NOT_FOUND` + `RECOVERY_FAILED` | — |
-| FR-025 | ✅ | 输出 Schema、重试、步数/模型调用上限；`elapsed_seconds` 剩余预算 | 超时是**执行时间**预算，不含停机时间（见 F-04） |
+| FR-025 | ✅ | 输出 Schema、重试、步数/模型调用上限；`elapsed_seconds` 剩余预算；`test_step_timeout_parity`、`test_task_timeout_parity`、`test_model_call_limit_parity`、`test_max_steps_limit_parity` | 超时是**执行时间**预算，不含停机时间（见 F-04） |
 | FR-026 | ✅⚠️ | 非幂等工具 + `UNKNOWN` → `E_RESUME_UNSUPPORTED`；`test_non_idempotent_unknown_result_blocks_resume` | **仅对声明了 `ToolSpec` 的工具生效**；`func=` 步骤默认视为可重放 |
 
 ### 4.5 双模式一致性
@@ -85,7 +85,7 @@
 |---|---|---|---|
 | FR-027 | ✅ | 两种 API 共用 `Checkpoint` 与 `TaskRuntime` | — |
 | FR-028 | ✅ | 统一 `resume` 入口 | — |
-| FR-029 | ⚠️ | `test_script_and_graph_resume_are_equivalent` | **该用例是线性任务**；分支恢复只有脚本侧测试，没有脚本/图恢复对比（见 F-06） |
+| FR-029 | ✅ | `test_script_and_graph_resume_are_equivalent`、`test_branch_resume_parity`、`test_nested_branch_resume_parity` | 线性 + 单层/嵌套分支恢复等价；多 end 为图模式独有，由 `test_graph_multiple_ends_resume` 覆盖 |
 
 ---
 
@@ -132,7 +132,7 @@
 | 4 | 检查点可保存、读取，识别损坏/不兼容 | ✅ | 含 `content_hash` |
 | 5 | 恢复跳过已完成步骤 | ✅ | 调用计数验证 + 随机 DAG |
 | 6 | 恢复后输出通过 Schema | ✅ | — |
-| 7 | 脚本/图在约定支持范围内一致 | ⚠️ | 线性已证明；分支恢复未做双模式对比 |
+| 7 | 脚本/图在约定支持范围内一致 | ✅ | 线性 + 单层/嵌套分支恢复已证明；多 end 为图模式独有并已单测覆盖 |
 | 8 | 副作用步骤不默认重复 | ⚠️ | ToolSpec 生效；`func=` 步骤按文档视为可重放 |
 | 9 | 自动化测试、架构图、接口文档已更新 | ⚠️ | 测试 ✅、Mermaid 架构图 ✅；**没有独立接口文档**（见 F-05） |
 | 10 | （隐含）失败恢复有明确错误 | ✅ | 错误码 + 事件 |
@@ -176,11 +176,11 @@
 - **评价**：验收判定写的是“架构图和接口文档已更新”。架构图满足；接口文档只能算“README 内嵌说明”，严格说未满足。
 - **建议**：把 README 中的接口章节抽成 `docs/api.md`，或明确声明 README 即接口文档。
 
-### F-06 AT-010 / FR-029 的“支持范围”没有写死
+### F-06 AT-010 / FR-029 的“支持范围”需要写死（已基本闭环）
 
-- **事实**：执行等价测试覆盖线性 + 单层分支；恢复等价测试只覆盖线性任务；分支恢复只有脚本侧用例。
-- **评价**：需求说“在约定支持范围内”，但当前文档没有把“约定支持范围”定义成清单。答辩时容易被追问“分支恢复的脚本/图等价证据在哪里”。
-- **建议**：在 `dual_mode_matrix.md` 中固定范围，并补 1 个“单层分支恢复的脚本/图对比”用例。
+- **事实**：2026-11-04 已补执行等价测试（嵌套分支、工具失败/重试、LLM、空 case、取消、超时、限制）和**单层 + 嵌套分支恢复的脚本/图对比**（`test_branch_resume_parity`、`test_nested_branch_resume_parity`）；图模式多 end 恢复由 `test_graph_multiple_ends_resume` 覆盖。
+- **评价**：AT-010 与 FR-029 在“线性 + 单层/嵌套分支”范围内已有证据；多 end 是图模式独有能力，不做脚本 parity。
+- **建议**：在论文和 `dual_mode_matrix.md` 中把“支持范围”写成“线性 + 单层/嵌套分支；多 end 仅图模式”，其余（非幂等副作用、模型失败）列为后续工作。
 
 ### F-07 恢复预检查失败的事件可能被吞掉
 
@@ -198,7 +198,7 @@
 
 ### 可以怎样表述
 
-> **P1 功能需求 29 条中 25 条完全满足，3 条部分满足（实现版本/副作用范围/双模式范围），1 条为已说明的语义偏差；12 条验收用例 11 条满足、1 条需限定范围；97 个测试通过。**
+> **P1 功能需求 29 条中 26 条完全满足，2 条部分满足（实现版本、副作用范围），1 条为已说明的语义偏差；12 条验收用例 11 条满足、1 条需限定范围；112 个测试通过。**
 
 这比“P1 全部完成”更准确，也更能经得起追问。
 
@@ -222,7 +222,7 @@
 ```bash
 # 测试
 cd stp
-python -m pytest -o addopts="" -q        # 97 passed
+python -m pytest -o addopts="" -q        # 112 passed
 
 # 需求文档转文本（本次使用 Cherry 的 docx → markdown）
 # 逐条对照：

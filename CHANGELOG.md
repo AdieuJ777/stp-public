@@ -15,7 +15,8 @@
 - 检查点默认 AES-GCM 加密，支持旧明文检查点读取；
 - 同步 callable 线程池执行，避免阻塞事件循环；
 - `events_for(run_id)` 按 run 隔离事件；
-- 记账 Agent Demo 与最小性能基准。
+- 记账 Agent Demo 与最小性能基准；
+- 双模式 parity 测试：嵌套分支、工具失败/重试、LLM、空 case、取消、单层/嵌套分支恢复、步骤/任务超时、模型调用/步数限制；图模式多 end、共享节点、多 end 恢复。
 
 ### Changed
 
