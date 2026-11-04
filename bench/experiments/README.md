@@ -18,6 +18,25 @@ uv run python bench/experiments/e1_equivalence.py
   - `results/e1_summary.md`
   - `results/env.json`
 
+### E2 恢复有效性
+
+```bash
+cd stp
+uv run python bench/experiments/e2_recovery.py
+```
+
+- 安全恢复：线性 / 单层分支 / 嵌套分支 / 工具步骤首次失败 → 恢复；
+- 危险场景：非幂等副作用 `UNKNOWN`、损坏检查点、计划变化、输入变化、分支路由变化；
+- 指标：恢复成功率、输出一致性、已完成步骤重复执行率、恢复耗时、危险场景正确拒绝率；
+- 输出：
+  - `results/e2_recovery.csv`
+  - `results/e2_safety.csv`
+  - `results/e2_summary.md`
+  - `results/env.json`
+
+> 重复执行率只统计 step 节点；branch 节点按设计会在恢复时重新求值，不计入重复执行。
+> E2 的 spec 使用 `max_attempts=1`，避免首次失败被同 run 自动重试吸收；这里关注的是跨 run 恢复，不是步骤重试。
+
 ### E3 运行时与检查点开销
 
 ```bash
@@ -43,7 +62,6 @@ uv run python bench/experiments/e3_overhead.py
 
 ## 待实现
 
-- E2 恢复有效性：恢复成功率、安全拒绝率、重复执行率、恢复耗时；
 - E4 静态校验有效性：注入非法计划，统计 `validate_plan` 拦截率；
 - E5 统一运行时收益：代码度量与重复实现点；
 - E6 LangGraph 对照（可选）。
