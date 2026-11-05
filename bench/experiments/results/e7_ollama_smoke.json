@@ -1,0 +1,55 @@
+{
+  "model": "qwen2.5:1.5b",
+  "base_url": "http://localhost:11434/v1",
+  "python": "3.11.16",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "stp_version": "0.2.0",
+  "timestamp_utc": "2026-11-05T06:48:29.154492+00:00",
+  "status": "SUCCEEDED",
+  "success_rate": "3/3",
+  "median_elapsed_ms": 243.23,
+  "runs": [
+    {
+      "run": 1,
+      "status": "SUCCEEDED",
+      "output": {
+        "status": "recorded",
+        "category": "travel",
+        "amount": 128
+      },
+      "error": null,
+      "model_call_count": 1,
+      "retries": 0,
+      "event_count": 12,
+      "elapsed_ms": 880.89
+    },
+    {
+      "run": 2,
+      "status": "SUCCEEDED",
+      "output": {
+        "status": "recorded",
+        "category": "travel",
+        "amount": 128
+      },
+      "error": null,
+      "model_call_count": 1,
+      "retries": 0,
+      "event_count": 12,
+      "elapsed_ms": 243.23
+    },
+    {
+      "run": 3,
+      "status": "SUCCEEDED",
+      "output": {
+        "status": "recorded",
+        "category": "travel",
+        "amount": 128
+      },
+      "error": null,
+      "model_call_count": 1,
+      "retries": 0,
+      "event_count": 12,
+      "elapsed_ms": 230.77
+    }
+  ]
+}

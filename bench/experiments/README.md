@@ -95,6 +95,19 @@ uv run python bench/experiments/e5_runtime_benefit.py
 
 > E5 是结构化的代码度量，不是运行时实验；不比较 LangGraph，也不声称普遍更优。
 
+### E7 真实模型冒烟验证
+
+```bash
+cd stp
+ollama pull qwen2.5:1.5b
+uv run python bench/experiments/e7_ollama_smoke.py
+```
+
+- 通过 OpenAI 兼容接口连接本机 Ollama，连续运行 3 次；
+- 输出 `results/e7_ollama_smoke.json` / `.md`；
+- 只验证真实模型的结构化输出可以进入统一运行时，不评价模型准确率；
+- 不属于 E1–E6 的冻结数据。
+
 ### E1–E6 汇总
 
 ```bash

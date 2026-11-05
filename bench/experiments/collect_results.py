@@ -264,6 +264,16 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
         e6_products = ""
 
     dirty_note = "（dirty）" if env["git_dirty"] else ""
+    workspace_note = (
+        "> 当前工作区存在未提交改动；论文最终数据应在 commit 后重跑。"
+        if env["git_dirty"]
+        else "> 结果在干净工作区上生成，commit 与结果文件可对应。"
+    )
+    dirty_threat = (
+        "- 当前 `git_dirty=true`，最终论文数据应在 commit 后重跑。\n"
+        if env["git_dirty"]
+        else ""
+    )
     return f"""# STP 实验汇总（E1–E6）
 
 - 环境：Python {env['python']}，{env['platform']}
@@ -272,7 +282,7 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
 - 时间：{env['timestamp_utc']}
 
 > 主实验全部使用 MockLLM + 确定性函数/工具，不依赖网络。
-> 当前 commit/dirty 状态说明结果是在未提交工作区上生成的；论文最终数据应在 commit 后重跑。
+{workspace_note}
 
 ## RQ 映射
 
@@ -354,7 +364,7 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
 - 计时仅在一台 Windows 机器上完成；
 - `plan_hash` 是结构哈希，不含函数体；
 - E5 的“避免重复实现”是反事实估计，不是实际对照实现的 LOC；
-{e6_threat}- 当前 `git_dirty=true`，最终论文数据应在 commit 后重跑。
+{e6_threat}{dirty_threat}
 
 ## 产物
 
