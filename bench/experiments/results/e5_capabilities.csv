@@ -1,0 +1,14 @@
+capability,category,shared_evidence,verified,script_specific,graph_specific,implementations,avoided_duplicates
+TaskIR / 计划构建,execution,"plan.py: TaskIR, PlanBuilder",True,False,False,1,1
+图遍历与节点调度,execution,executor.py: TaskRuntime._execute_graph,True,False,False,1,1
+步骤执行（工具/函数/LLM）,execution,executor.py: TaskRuntime._execute_step,True,False,False,1,1
+静态计划校验,contract,validation.py: validate_plan,True,False,False,1,1
+输入/输出/工具契约校验,contract,schema.py: validate_instance,True,False,False,1,1
+重试与退避,reliability,executor.py: TaskRuntime._can_retry / _schedule_retry,True,False,False,1,1
+超时、步数与模型调用限制,reliability,executor.py: TaskRuntime.run / _execute_step; context.py,True,False,False,1,1
+取消传播,reliability,tokens.py: CancellationToken; context.py,True,False,False,1,1
+事件总线与事件存储,observability,events.py: EventBus; stores.py,True,False,False,1,1
+检查点与完整性校验,recovery,"checkpoint.py: Checkpoint, JsonCheckpointStore",True,False,False,1,1
+恢复执行,recovery,executor.py: TaskRuntime.resume / _resolve_resume_checkpoint,True,False,False,1,1
+错误分类,observability,errors.py: FrameworkError 及子类,True,False,False,1,1
+双模式可观察结果比较,evaluation,diff.py: compare_runs,True,False,False,1,1

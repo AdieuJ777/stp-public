@@ -58,7 +58,8 @@ uv run python bench/experiments/e3_overhead.py
 - 计时类实验报告 median / p95，不报单次；
 - 每次运行都会记录 Python、平台、stp 版本、git commit、是否 dirty；
 - 数字用于报告量级，不是性能承诺；
-- 真实 Ollama 只作为补充 smoke test，不进入主表。
+- 真实 Ollama 只作为补充 smoke test，不进入主表；
+- `results/` 中的结果是 preliminary：`env.json` 记录 `git_dirty=true`，最终论文数据应在 commit 后重跑。
 
 ### E4 静态计划校验有效性
 
@@ -75,7 +76,36 @@ uv run python bench/experiments/e4_validation.py
   - `results/e4_summary.md`
   - `results/env.json`
 
+### E5 统一运行时收益
+
+```bash
+cd stp
+uv run python bench/experiments/e5_runtime_benefit.py
+```
+
+- 用 AST 统计核心模块 LOC、类/函数、EventType 引用、校验调用、runtime 调用；
+- 统计共享运行时 / 前端 / 适配层代码比例；
+- 审计 13 项共享能力（计划、遍历、契约、重试、限制、取消、事件、检查点、恢复、错误分类、差分等）是否只有一份实现；
+- 按“脚本/图各写一套运行时”的反事实估计避免的重复实现点；
+- 输出：
+  - `results/e5_modules.csv`
+  - `results/e5_capabilities.csv`
+  - `results/e5_summary.md`
+  - `results/env.json`
+
+> E5 是结构化的代码度量，不是运行时实验；不比较 LangGraph，也不声称普遍更优。
+
+### E1–E5 汇总
+
+```bash
+cd stp
+uv run python bench/experiments/collect_results.py
+```
+
+- 读取 E1–E5 的 CSV，生成：
+  - `results/summary_all.md`：RQ 映射、关键指标、统一解读、威胁与边界；
+  - `results/tables.tex`：论文用的 LaTeX 表格（需要 ctex/xeCJK）。
+
 ## 待实现
 
-- E5 统一运行时收益：代码度量与重复实现点；
 - E6 LangGraph 对照（可选）。

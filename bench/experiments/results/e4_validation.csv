@@ -1,0 +1,9 @@
+case,description,expected,caught,matched,error_code,runtime_rejected,runtime_error,errors
+dangling_reference,步骤引用了不存在的 state key,unknown state key,True,True,E_PLAN_INVALID,True,E_PLAN_INVALID,step 'bad_1' references unknown state key 'missing'
+cycle,计划存在环,cycle,True,True,E_PLAN_INVALID,True,E_PLAN_INVALID,node 'end_3' is unreachable from entry | plan contains a cycle; the prototype supports DAGs only
+unreachable,存在从 entry 不可达的节点,unreachable,True,True,E_PLAN_INVALID,True,E_PLAN_INVALID,node 'orphan_3' is unreachable from entry
+branch_without_default,分支 default 不在 routes 中,default_route,True,True,E_PLAN_INVALID,True,E_PLAN_INVALID,branch 'route_2' default_route 'missing' is not in routes
+duplicate_output_key,同一路径上重复 output_key,duplicate output_key,True,True,E_PLAN_INVALID,True,E_PLAN_INVALID,duplicate output_key 'dup' in 'a_1' and 'b_2' on paths that can execute together
+end_missing_required,end 输出映射缺少必填字段,missing required fields,True,True,E_PLAN_INVALID,True,E_PLAN_INVALID,end 'end_2' output_mapping is missing required fields: ['value']
+max_steps_too_small,max_steps 小于最短路径步数,max_steps,True,True,E_PLAN_INVALID,True,E_PLAN_INVALID,max_steps=1 is smaller than the shortest path (2 steps)
+valid_baseline,合法基线计划，不应被拒绝,no error,False,True,,False,,

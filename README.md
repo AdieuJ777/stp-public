@@ -105,6 +105,7 @@ stp/
   docs/dual_mode_matrix.md      脚本/图双模式 parity 审计
   docs/0.3.0_backlog.md         0.3.0 可信执行债务与优先级
   bench/p1_benchmark.py    NFR-007 最小基准脚本
+  bench/experiments/       E1–E5 实验脚本与汇总
   tests/             112 个 pytest 用例
 ```
 
@@ -113,6 +114,8 @@ P1 需求与验收编号的对应关系见 [`docs/p1_traceability.md`](docs/p1_t
 双模式能力覆盖见 [`docs/dual_mode_matrix.md`](docs/dual_mode_matrix.md)，
 P1 证据链复核见 [`docs/p1_evidence_recheck.md`](docs/p1_evidence_recheck.md)，
 下一阶段债务清单见 [`docs/0.3.0_backlog.md`](docs/0.3.0_backlog.md)。
+实验脚本与结果见 [`bench/experiments/README.md`](bench/experiments/README.md)，
+汇总报告见 [`bench/experiments/results/summary_all.md`](bench/experiments/results/summary_all.md)。
 
 > `docs/p1_*` 引用内部需求基线《需求规格说明书_p1阶段.docx》，该基线不随仓库发布。
 > 许可证：MIT（见 [`LICENSE`](LICENSE)）。
@@ -436,6 +439,35 @@ python bench/p1_benchmark.py
 恢复测试中已完成步骤的重复调用数为 **0**。这些数字只用于报告量级，不是性能承诺。
 检查点默认加密，字节数与耗时包含 AES-GCM 信封开销；同步 `func` 步骤经线程池执行，
 基线也包含 offload 开销。这是安全/响应性与性能的有意取舍。
+
+---
+
+## 实验结果（E1–E5）
+
+实验脚本在 [`bench/experiments/`](bench/experiments/)，汇总报告在
+[`results/summary_all.md`](bench/experiments/results/summary_all.md)，
+论文用 LaTeX 表格在 [`results/tables.tex`](bench/experiments/results/tables.tex)。
+
+| RQ | 实验 | 结果 |
+|---|---|---|
+| RQ1 双模式等价性 | E1 | 12/12（100%）场景等价 |
+| RQ2 统一运行时收益 | E5 | 共享运行时 2994 LOC（90%），前端 334 LOC（10%）；13/13 共享能力 |
+| RQ3 运行时与检查点开销 | E3 | 每步额外开销约 1.6–2.2 ms；20 步加密模式 p95 约 53 ms |
+| RQ4 恢复有效性 | E2 | 安全恢复 4/4；危险场景正确拒绝 5/5；重复执行 0% |
+| RQ5 静态校验有效性 | E4 | 非法计划 7/7 执行前拦截；合法基线 0 误报 |
+
+```bash
+uv run python bench/experiments/e1_equivalence.py
+uv run python bench/experiments/e2_recovery.py
+uv run python bench/experiments/e3_overhead.py
+uv run python bench/experiments/e4_validation.py
+uv run python bench/experiments/e5_runtime_benefit.py
+uv run python bench/experiments/collect_results.py
+```
+
+> 主实验使用 MockLLM + 确定性函数/工具，不依赖网络。
+> 当前结果是在未提交工作区（`git_dirty=true`）上生成的 preliminary 数据；
+> 论文最终数据应在 commit 后重跑上述脚本。
 
 ---
 

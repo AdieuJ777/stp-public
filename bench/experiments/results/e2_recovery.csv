@@ -1,0 +1,5 @@
+case,description,reference_status,first_status,first_error,resume_status,resume_error,output_consistent,completed_step_count,completed_steps,re_executed_completed,duplicate_rate,resume_ms,reference_output,resumed_output,calls
+linear_mid,5 步线性任务，第 3 步首次失败,SUCCEEDED,FAILED,E_FRAMEWORK,SUCCEEDED,,True,2,s1;s2,0,0.000,9.69,"{""value"": 5}","{""value"": 5}","{""s1"": 1, ""s2"": 1, ""s3"": 2, ""s4"": 1, ""s5"": 1}"
+branch_high,单层分支 high 步骤首次失败,SUCCEEDED,FAILED,E_FRAMEWORK,SUCCEEDED,,True,1,classify,0,0.000,5.45,"{""status"": ""approved""}","{""status"": ""approved""}","{""classify"": 1, ""high"": 2}"
+nested_high_eu,嵌套分支 high_eu 步骤首次失败,SUCCEEDED,FAILED,E_FRAMEWORK,SUCCEEDED,,True,1,classify,0,0.000,5.79,"{""result"": ""high-eu""}","{""result"": ""high-eu""}","{""classify"": 1, ""high_eu"": 2}"
+tool_first_failure,工具步骤首次失败，恢复后成功,SUCCEEDED,FAILED,E_TOOL_CALL,SUCCEEDED,,True,1,pre,0,0.000,4.58,"{""result"": ""ok""}","{""result"": ""ok""}","{""pre"": 1, ""tool"": 2}"

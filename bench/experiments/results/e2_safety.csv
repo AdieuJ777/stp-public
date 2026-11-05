@@ -1,0 +1,6 @@
+case,description,expected_code,outcome,error_code,correct,first_status,first_error,resume_ms
+non_idempotent_unknown,非幂等副作用工具失败，应拒绝自动恢复,E_RESUME_UNSUPPORTED,refused,E_RESUME_UNSUPPORTED,True,FAILED,E_TOOL_CALL,8.66
+corrupt_checkpoint,最新检查点被破坏，应拒绝恢复,E_CHECKPOINT_INVALID,refused,E_CHECKPOINT_INVALID,True,FAILED,E_FRAMEWORK,1.59
+changed_plan,恢复时计划结构变化，应拒绝,E_CHECKPOINT_INCOMPATIBLE,refused,E_CHECKPOINT_INCOMPATIBLE,True,FAILED,E_FRAMEWORK,8.16
+changed_input,恢复时输入变化，应拒绝,E_CHECKPOINT_INCOMPATIBLE,refused,E_CHECKPOINT_INCOMPATIBLE,True,FAILED,E_FRAMEWORK,8.16
+route_mismatch,恢复时分支条件给出不同路由，应拒绝,E_RESUME_UNSUPPORTED,failed,E_RESUME_UNSUPPORTED,True,FAILED,E_FRAMEWORK,9.74

@@ -1,0 +1,13 @@
+scenario,description,strict_fields,left_status,right_status,left_error,right_error,equivalent,differences,left_retries,right_retries,left_tools,right_tools,left_output,right_output
+linear,三步顺序函数任务,result,SUCCEEDED,SUCCEEDED,,,True,,0,0,,,"{""result"": ""c""}","{""result"": ""c""}"
+branch,单层条件分支 + 汇合,result,SUCCEEDED,SUCCEEDED,,,True,,0,0,,,"{""result"": ""high""}","{""result"": ""high""}"
+nested_branch,两层嵌套分支 + 双汇合,result,SUCCEEDED,SUCCEEDED,,,True,,0,0,,,"{""result"": ""high-eu""}","{""result"": ""high-eu""}"
+empty_case,空分支 case 直接走汇合,result,SUCCEEDED,SUCCEEDED,,,True,,0,0,,,"{""result"": ""base""}","{""result"": ""base""}"
+tool_success,计算器工具成功调用,value,SUCCEEDED,SUCCEEDED,,,True,,0,0,calculator,calculator,"{""value"": 10.0}","{""value"": 10.0}"
+tool_failure_retry,工具始终失败，重试一次后任务失败,,FAILED,FAILED,E_TOOL_CALL,E_TOOL_CALL,True,,1,1,always_fail;always_fail,always_fail;always_fail,,
+llm_structured,MockLLM 结构化输出,value,SUCCEEDED,SUCCEEDED,,,True,,0,0,,,"{""value"": 7}","{""value"": 7}"
+step_timeout,步骤级超时,,FAILED,FAILED,E_STEP_TIMEOUT,E_STEP_TIMEOUT,True,,0,0,,,,
+task_timeout,任务级超时,,FAILED,FAILED,E_TASK_TIMEOUT,E_TASK_TIMEOUT,True,,0,0,,,,
+model_limit,模型调用次数上限,,FAILED,FAILED,E_LIMIT_EXCEEDED,E_LIMIT_EXCEEDED,True,,0,0,,,,
+step_limit,步数上限（含 branch 计数口径）,,FAILED,FAILED,E_LIMIT_EXCEEDED,E_LIMIT_EXCEEDED,True,,0,0,,,,
+cancel,步骤边界取消,,CANCELLED,CANCELLED,E_CANCELLED,E_CANCELLED,True,,0,0,,,,
