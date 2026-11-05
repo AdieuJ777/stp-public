@@ -3,7 +3,7 @@
 - Python：3.11.16
 - 平台：Windows-10-10.0.26200-SP0
 - stp：0.2.0
-- git commit：7deb2aa03f32be81f2621caa24cda570c6603349（dirty）
+- git commit：6a4256a91d1d36df2c809d383fe49930cf55bdb0
 
 - 注入非法计划：7
 - validate_plan 检出：7/7（100.0%）

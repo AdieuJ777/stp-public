@@ -3,7 +3,7 @@
 - Python：3.11.16
 - 平台：Windows-10-10.0.26200-SP0
 - stp：0.2.0
-- git commit：64ddd7c4ec4c68bb583c56e114d7bdee57afca23（dirty）
+- git commit：6a4256a91d1d36df2c809d383fe49930cf55bdb0
 
 | 任务 | 实现 | 首次状态 | 恢复状态 | 输出符合预期 | 重复已完成步骤 | 错误 |
 |---|---|---|---|---|---:|---|
