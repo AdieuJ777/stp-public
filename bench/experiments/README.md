@@ -60,8 +60,22 @@ uv run python bench/experiments/e3_overhead.py
 - 数字用于报告量级，不是性能承诺；
 - 真实 Ollama 只作为补充 smoke test，不进入主表。
 
+### E4 静态计划校验有效性
+
+```bash
+cd stp
+uv run python bench/experiments/e4_validation.py
+```
+
+- 注入 7 类非法计划：悬空引用、成环、不可达、分支缺默认、`output_key` 冲突、`end` 缺必填字段、`max_steps` 过小；
+- 统计 `validate_plan` 检出率、预期错误命中率、`TaskRuntime.run` 执行前拒绝率；
+- 另跑一个合法基线，检查误报；
+- 输出：
+  - `results/e4_validation.csv`
+  - `results/e4_summary.md`
+  - `results/env.json`
+
 ## 待实现
 
-- E4 静态校验有效性：注入非法计划，统计 `validate_plan` 拦截率；
 - E5 统一运行时收益：代码度量与重复实现点；
 - E6 LangGraph 对照（可选）。
