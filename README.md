@@ -442,7 +442,7 @@ python bench/p1_benchmark.py
 
 ---
 
-## 实验结果（E1–E5）
+## 实验结果（E1–E6）
 
 实验脚本在 [`bench/experiments/`](bench/experiments/)，汇总报告在
 [`results/summary_all.md`](bench/experiments/results/summary_all.md)，
@@ -455,6 +455,7 @@ python bench/p1_benchmark.py
 | RQ3 运行时与检查点开销 | E3 | 每步额外开销约 1.6–2.2 ms；20 步加密模式 p95 约 53 ms |
 | RQ4 恢复有效性 | E2 | 安全恢复 4/4；危险场景正确拒绝 5/5；重复执行 0% |
 | RQ5 静态校验有效性 | E4 | 非法计划 7/7 执行前拦截；合法基线 0 误报 |
+| 外部对照（可选） | E6 | T1/T2 输出一致；T2 重复执行 0；LOC：T1 STP 脚本 82 / STP 图 70 / LangGraph 62；T2 STP 56 / LangGraph 40 |
 
 ```bash
 uv run python bench/experiments/e1_equivalence.py
@@ -465,9 +466,19 @@ uv run python bench/experiments/e5_runtime_benefit.py
 uv run python bench/experiments/collect_results.py
 ```
 
+E6 需要可选的 LangGraph 依赖：
+
+```bash
+uv sync --extra e6
+uv run python bench/e6_langgraph/run_compare.py
+uv run python bench/e6_langgraph/measure.py
+```
+
 > 主实验使用 MockLLM + 确定性函数/工具，不依赖网络。
 > 当前结果是在未提交工作区（`git_dirty=true`）上生成的 preliminary 数据；
 > 论文最终数据应在 commit 后重跑上述脚本。
+> E6 是小任务、单开发者对照，不声称 STP 普遍优于 LangGraph；详见
+> [`bench/e6_langgraph/README.md`](bench/e6_langgraph/README.md)。
 
 ---
 

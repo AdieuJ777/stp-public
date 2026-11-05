@@ -1,9 +1,9 @@
-# STP 实验汇总（E1–E5）
+# STP 实验汇总（E1–E6）
 
 - 环境：Python 3.11.16，Windows-10-10.0.26200-SP0
 - stp：0.2.0
-- git commit：7deb2aa03f32be81f2621caa24cda570c6603349（dirty）
-- 时间：2026-11-05T04:24:42.371874+00:00
+- git commit：64ddd7c4ec4c68bb583c56e114d7bdee57afca23（dirty）
+- 时间：2026-11-05T04:58:14.643971+00:00
 
 > 主实验全部使用 MockLLM + 确定性函数/工具，不依赖网络。
 > 当前 commit/dirty 状态说明结果是在未提交工作区上生成的；论文最终数据应在 commit 后重跑。
@@ -17,6 +17,7 @@
 | RQ3 运行时与检查点开销 | E3 | 每步额外开销约 1.6–2.2 ms；20 步加密模式 p95 约 53 ms |
 | RQ4 恢复有效性 | E2 | 安全恢复 4/4；危险拒绝 5/5；重复执行 0.0% |
 | RQ5 静态校验有效性 | E4 | 7/7 命中预期错误；执行前拒绝 7/7；误报 0 |
+| 外部对照（可选） | E6 | T1/T2 输出一致；T2 重复执行 STP=0；LangGraph=0；LOC：T1 STP script 82 / STP graph 70 / LangGraph 62；T2 STP 56 / LangGraph 40 |
 
 ## E1 双模式等价性
 
@@ -90,6 +91,33 @@
 
 > “避免的重复实现点”是反事实估计：假设脚本/图各维护一套执行逻辑，本应有两份实现；当前为一份共享实现。
 
+## E6 外部对照（可选）
+
+- T1/T2 的可观察输出与预期一致；
+- T2 两边恢复后，已完成步骤重复执行为 0；
+- 业务函数由 `shared.py` 共用，LOC 只计编排/契约/恢复；
+- 这是单开发者、小任务对照，不声称 STP 普遍优于 LangGraph。
+
+| 任务 | 实现 | 首次 | 恢复 | 输出符合预期 | 重复已完成步骤 | LOC |
+|---|---|---|---|---|---:|---:|
+| T1 | STP script | SUCCEEDED | — | ✅ | — | 82 |
+| T1 | STP graph | SUCCEEDED | — | ✅ | — | 70 |
+| T1 | LangGraph | SUCCEEDED | — | ✅ | — | 62 |
+| T2 | STP | FAILED | SUCCEEDED | ✅ | 0 | 56 |
+| T2 | LangGraph | FAILED | SUCCEEDED | ✅ | 0 | 40 |
+
+| 实现 | LOC | 控制流调用 | 恢复相关行 | Schema 行 |
+|---|---:|---:|---:|---:|
+| STP script T1 | 82 | 6 | 0 | 4 |
+| STP graph T1 | 70 | 15 | 0 | 0 |
+| LangGraph T1 | 62 | 11 | 0 | 2 |
+| STP T2 | 56 | 2 | 5 | 4 |
+| LangGraph T2 | 40 | 4 | 11 | 2 |
+| Shared business logic | 42 | 0 | 0 | 0 |
+
+> LangGraph 版本固定为 1.2.20，`langgraph-checkpoint-sqlite` 3.1.3。
+
+
 ## 统一解读
 
 1. **等价性**：12 个确定性场景全部等价，覆盖正常、分支、嵌套分支、工具、LLM、失败/重试、超时、限制、取消。
@@ -97,6 +125,7 @@
 3. **恢复**：安全场景 4/4 成功，已完成步骤重复执行 0；危险场景 5/5 正确拒绝。
 4. **静态校验**：7/7 非法计划在执行前被拦截，合法基线 0 误报。
 5. **开销**：检查点每步约 1.6–2.2 ms；加密带来的耗时差异在噪声内，文件大小约增加 35%–40%。
+6. **外部对照**：在小任务、单开发者条件下，LangGraph 的编排 LOC 更少；STP 的额外代码主要来自 TaskSpec、Schema 和显式检查点/恢复。这构成范围明确的 trade-off，不构成普遍优劣结论。
 
 ## 威胁与边界
 
@@ -105,6 +134,7 @@
 - 计时仅在一台 Windows 机器上完成；
 - `plan_hash` 是结构哈希，不含函数体；
 - E5 的“避免重复实现”是反事实估计，不是实际对照实现的 LOC；
+- E6 是单开发者、小任务、共享 Mock 业务函数的对照，不能外推为普遍性能或易用性结论；
 - 当前 `git_dirty=true`，最终论文数据应在 commit 后重跑。
 
 ## 产物
@@ -118,5 +148,10 @@ results/
 ├── e5_modules.csv / e5_capabilities.csv / e5_summary.md
 ├── summary_all.md
 ├── tables.tex
+└── env.json
+
+bench/e6_langgraph/results/
+├── e6_comparison.csv / e6_summary.md
+├── e6_loc.csv / e6_loc.md
 └── env.json
 ```

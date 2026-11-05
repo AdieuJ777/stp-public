@@ -95,17 +95,14 @@ uv run python bench/experiments/e5_runtime_benefit.py
 
 > E5 是结构化的代码度量，不是运行时实验；不比较 LangGraph，也不声称普遍更优。
 
-### E1–E5 汇总
+### E1–E6 汇总
 
 ```bash
 cd stp
 uv run python bench/experiments/collect_results.py
 ```
 
-- 读取 E1–E5 的 CSV，生成：
+- 读取 E1–E5 以及 `bench/e6_langgraph/results/` 的 CSV，生成：
   - `results/summary_all.md`：RQ 映射、关键指标、统一解读、威胁与边界；
   - `results/tables.tex`：论文用的 LaTeX 表格（需要 ctex/xeCJK）。
-
-## 待实现
-
-- E6 LangGraph 对照（可选）。
+- E6 LangGraph 对照的代码与说明见 [`../e6_langgraph/README.md`](../e6_langgraph/README.md)。

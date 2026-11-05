@@ -1,0 +1,6 @@
+task,implementation,first_status,resume_status,output_ok,duplicate_completed,calls,error
+T1,STP script,SUCCEEDED,,True,,,
+T1,STP graph,SUCCEEDED,,True,,,
+T1,LangGraph,SUCCEEDED,,True,,,
+T2,STP,FAILED,SUCCEEDED,True,0,"{""s1"": 1, ""s2"": 1, ""s3"": 2, ""s4"": 1, ""s5"": 1}",
+T2,LangGraph,FAILED,SUCCEEDED,True,0,"{""s1"": 1, ""s2"": 1, ""s3"": 2, ""s4"": 1, ""s5"": 1}",

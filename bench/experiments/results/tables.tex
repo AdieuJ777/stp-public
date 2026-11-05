@@ -115,3 +115,20 @@ shared & 2994 & 90.0\% \\
 \par\smallskip
 \small Shared capabilities verified: 13/13.
 \end{table}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{E6 STP vs LangGraph}
+\begin{tabular}{llccccr}
+\hline
+Task & Impl & First & Resume & Output & Duplicate & LOC \\
+\hline
+T1 & STP script & SUCCEEDED & -- & Yes & -- & 82 \\
+T1 & STP graph & SUCCEEDED & -- & Yes & -- & 70 \\
+T1 & LangGraph & SUCCEEDED & -- & Yes & -- & 62 \\
+T2 & STP & FAILED & SUCCEEDED & Yes & 0 & 56 \\
+T2 & LangGraph & FAILED & SUCCEEDED & Yes & 0 & 40 \\
+\hline
+\end{tabular}
+\end{table}

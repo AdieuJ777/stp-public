@@ -84,6 +84,40 @@ def _e5_rows(results: Path) -> tuple[list[dict[str, str]], list[dict[str, str]]]
     )
 
 
+def _e6_dir(results: Path) -> Path:
+    # results = bench/experiments/results -> bench/e6_langgraph/results
+    return results.parents[1] / "e6_langgraph" / "results"
+
+
+def _e6_rows(results: Path) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    directory = _e6_dir(results)
+    comparison = directory / "e6_comparison.csv"
+    loc = directory / "e6_loc.csv"
+    if not comparison.exists() or not loc.exists():
+        return [], []
+    return _read_csv(comparison), _read_csv(loc)
+
+
+E6_LOC_LABEL = {
+    ("T1", "STP script"): "STP script T1",
+    ("T1", "STP graph"): "STP graph T1",
+    ("T1", "LangGraph"): "LangGraph T1",
+    ("T2", "STP"): "STP T2",
+    ("T2", "LangGraph"): "LangGraph T2",
+}
+
+
+def _e6_loc_value(
+    loc_by: dict[str, dict[str, str]],
+    task: str,
+    implementation: str,
+) -> str:
+    label = E6_LOC_LABEL.get((task, implementation))
+    if label is None:
+        return "—"
+    return loc_by.get(label, {}).get("loc", "—")
+
+
 def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
     e1 = _e1_rows(results)
     e2_safe, e2_danger = _e2_rows(results)
@@ -162,8 +196,75 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
         f"反事实避免重复实现 {cap_avoided} 项。"
     )
 
+    e6_cmp, e6_loc = _e6_rows(results)
+    e6_loc_by = {row["implementation"]: row for row in e6_loc}
+    e6_cmp_md = "\n".join(
+        f"| {row['task']} | {row['implementation']} | {row['first_status']} | "
+        f"{row['resume_status'] or '—'} | {'✅' if row['output_ok'] == 'True' else '❌'} | "
+        f"{row['duplicate_completed'] if row['duplicate_completed'] else '—'} | "
+        f"{_e6_loc_value(e6_loc_by, row['task'], row['implementation'])} |"
+        for row in e6_cmp
+    )
+    e6_loc_md = "\n".join(
+        f"| {row['implementation']} | {row['loc']} | {row['control_calls']} | "
+        f"{row['recovery_lines']} | {row['schema_lines']} |"
+        for row in e6_loc
+    )
+    e6_t2_dups = "；".join(
+        f"{row['implementation']}={row['duplicate_completed']}"
+        for row in e6_cmp
+        if row["task"] == "T2"
+    )
+    if e6_cmp:
+        t1_loc = " / ".join(
+            f"{row['implementation']} {_e6_loc_value(e6_loc_by, 'T1', row['implementation'])}"
+            for row in e6_cmp
+            if row["task"] == "T1"
+        )
+        t2_loc = " / ".join(
+            f"{row['implementation']} {_e6_loc_value(e6_loc_by, 'T2', row['implementation'])}"
+            for row in e6_cmp
+            if row["task"] == "T2"
+        )
+        e6_rq_row = (
+            f"| 外部对照（可选） | E6 | T1/T2 输出一致；T2 重复执行 {e6_t2_dups}；"
+            f"LOC：T1 {t1_loc}；T2 {t2_loc} |"
+        )
+        e6_section = f"""## E6 外部对照（可选）
+
+- T1/T2 的可观察输出与预期一致；
+- T2 两边恢复后，已完成步骤重复执行为 0；
+- 业务函数由 `shared.py` 共用，LOC 只计编排/契约/恢复；
+- 这是单开发者、小任务对照，不声称 STP 普遍优于 LangGraph。
+
+| 任务 | 实现 | 首次 | 恢复 | 输出符合预期 | 重复已完成步骤 | LOC |
+|---|---|---|---|---|---:|---:|
+{e6_cmp_md}
+
+| 实现 | LOC | 控制流调用 | 恢复相关行 | Schema 行 |
+|---|---:|---:|---:|---:|
+{e6_loc_md}
+
+> LangGraph 版本固定为 1.2.20，`langgraph-checkpoint-sqlite` 3.1.3。
+"""
+        e6_interpretation = (
+            "6. **外部对照**：在小任务、单开发者条件下，LangGraph 的编排 LOC 更少；"
+            "STP 的额外代码主要来自 TaskSpec、Schema 和显式检查点/恢复。"
+            "这构成范围明确的 trade-off，不构成普遍优劣结论。"
+        )
+        e6_threat = (
+            "- E6 是单开发者、小任务、共享 Mock 业务函数的对照，不能外推为普遍性能或易用性结论；\n"
+        )
+        e6_products = "├── e6_loc.csv / e6_loc.md\n"
+    else:
+        e6_rq_row = ""
+        e6_section = ""
+        e6_interpretation = ""
+        e6_threat = ""
+        e6_products = ""
+
     dirty_note = "（dirty）" if env["git_dirty"] else ""
-    return f"""# STP 实验汇总（E1–E5）
+    return f"""# STP 实验汇总（E1–E6）
 
 - 环境：Python {env['python']}，{env['platform']}
 - stp：{env['stp_version']}
@@ -182,6 +283,7 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
 | RQ3 运行时与检查点开销 | E3 | 每步额外开销约 1.6–2.2 ms；20 步加密模式 p95 约 53 ms |
 | RQ4 恢复有效性 | E2 | 安全恢复 {e2_safe_success}/{len(e2_safe)}；危险拒绝 {e2_danger_correct}/{len(e2_danger)}；重复执行 {e2_duplicate_rate:.1f}% |
 | RQ5 静态校验有效性 | E4 | {e4_matched}/{len(e4_invalid)} 命中预期错误；执行前拒绝 {e4_runtime}/{len(e4_invalid)}；误报 {e4_false_positive} |
+{e6_rq_row}
 
 ## E1 双模式等价性
 
@@ -234,6 +336,8 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
 
 > “避免的重复实现点”是反事实估计：假设脚本/图各维护一套执行逻辑，本应有两份实现；当前为一份共享实现。
 
+{e6_section}
+
 ## 统一解读
 
 1. **等价性**：12 个确定性场景全部等价，覆盖正常、分支、嵌套分支、工具、LLM、失败/重试、超时、限制、取消。
@@ -241,6 +345,7 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
 3. **恢复**：安全场景 4/4 成功，已完成步骤重复执行 0；危险场景 5/5 正确拒绝。
 4. **静态校验**：7/7 非法计划在执行前被拦截，合法基线 0 误报。
 5. **开销**：检查点每步约 1.6–2.2 ms；加密带来的耗时差异在噪声内，文件大小约增加 35%–40%。
+{e6_interpretation}
 
 ## 威胁与边界
 
@@ -249,7 +354,7 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
 - 计时仅在一台 Windows 机器上完成；
 - `plan_hash` 是结构哈希，不含函数体；
 - E5 的“避免重复实现”是反事实估计，不是实际对照实现的 LOC；
-- 当前 `git_dirty=true`，最终论文数据应在 commit 后重跑。
+{e6_threat}- 当前 `git_dirty=true`，最终论文数据应在 commit 后重跑。
 
 ## 产物
 
@@ -263,6 +368,10 @@ results/
 ├── summary_all.md
 ├── tables.tex
 └── env.json
+
+bench/e6_langgraph/results/
+├── e6_comparison.csv / e6_summary.md
+{e6_products}└── env.json
 ```
 """
 
@@ -283,6 +392,34 @@ def _latex_tables(results: Path) -> str:
     e3 = _e3_rows(results)
     e4 = _e4_rows(results)
     e5_modules, e5_caps = _e5_rows(results)
+    e6_cmp, e6_loc = _e6_rows(results)
+    e6_loc_by = {row["implementation"]: row for row in e6_loc}
+
+    if e6_cmp:
+        e6_rows_tex = "\n".join(
+            f"{_tex(row['task'])} & {_tex(row['implementation'])} & "
+            f"{_tex(row['first_status'])} & {_tex(row['resume_status'] or '--')} & "
+            f"{'Yes' if row['output_ok'] == 'True' else 'No'} & "
+            f"{row['duplicate_completed'] or '--'} & "
+            f"{_e6_loc_value(e6_loc_by, row['task'], row['implementation'])} \\\\"
+            for row in e6_cmp
+        )
+        e6_table = rf"""
+\begin{{table}}[htbp]
+\centering
+\small
+\caption{{E6 STP vs LangGraph}}
+\begin{{tabular}}{{llccccr}}
+\hline
+Task & Impl & First & Resume & Output & Duplicate & LOC \\
+\hline
+{e6_rows_tex}
+\hline
+\end{{tabular}}
+\end{{table}}
+"""
+    else:
+        e6_table = ""
 
     e1_rows = "\n".join(
         f"{_tex(row['scenario'])} & {_tex(row['left_status'])} & "
@@ -412,7 +549,7 @@ Category & LOC & Share (\%) \\
 \par\smallskip
 \small Shared capabilities verified: {cap_verified}/{len(e5_caps)}.
 \end{{table}}
-"""
+{e6_table}"""
 
 
 def main() -> int:
