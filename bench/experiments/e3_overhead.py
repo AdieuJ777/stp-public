@@ -156,12 +156,25 @@ def _write_markdown(path: Path, rows: list[dict[str, Any]], env: dict[str, Any])
             f"{row['p95_ms']:.2f} | {row['overhead_ms']} | {row['overhead_pct']} | "
             f"{row['overhead_per_step_ms']} | {row['bytes']} |"
         )
+    by_key = {(row["steps"], row["mode"]): row for row in rows}
+    size_increases = [
+        (encrypted["bytes"] / plain["bytes"] - 1) * 100
+        for (steps, mode), plain in by_key.items()
+        if mode == "plain" and plain["bytes"]
+        for encrypted in [by_key.get((steps, "encrypted"))]
+        if encrypted and encrypted["bytes"]
+    ]
+    size_note = (
+        f"{min(size_increases):.0f}%–{max(size_increases):.0f}%"
+        if size_increases
+        else "—"
+    )
     lines.extend(
         [
             "",
             "> 计时不包含 `JsonCheckpointStore` 初始化（含 PBKDF2 密钥派生）；"
             "只测任务执行与检查点写入。",
-            "> 加密模式的文件大小约比明文高 35%–40%；median 耗时差异在本次测量噪声内。",
+            f"> 加密模式的文件大小约比明文高 {size_note}；median 耗时差异在本次测量噪声内。",
             "> 数字用于报告量级，不是性能承诺。",
         ]
     )

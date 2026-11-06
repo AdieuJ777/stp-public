@@ -170,6 +170,39 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
         f"{row['bytes']} |"
         for row in e3
     )
+    e3_overheads = [
+        float(row["overhead_per_step_ms"])
+        for row in e3
+        if row["overhead_per_step_ms"]
+    ]
+    e3_min = min(e3_overheads) if e3_overheads else 0.0
+    e3_max = max(e3_overheads) if e3_overheads else 0.0
+    e3_p95_20 = next(
+        (
+            float(row["p95_ms"])
+            for row in e3
+            if row["steps"] == "20" and row["mode"] == "encrypted"
+        ),
+        0.0,
+    )
+    e3_note = (
+        f"每步额外开销约 {e3_min:.1f}–{e3_max:.1f} ms；"
+        f"20 步加密模式 p95 约 {e3_p95_20:.1f} ms"
+    )
+    e3_by_key = {(row["steps"], row["mode"]): row for row in e3}
+    e3_size_increases = [
+        (int(e3_by_key[(steps, "encrypted")]["bytes"]) / int(plain["bytes"]) - 1)
+        * 100
+        for (steps, mode), plain in e3_by_key.items()
+        if mode == "plain"
+        and plain["bytes"]
+        and (steps, "encrypted") in e3_by_key
+    ]
+    e3_size_note = (
+        f"{min(e3_size_increases):.0f}%–{max(e3_size_increases):.0f}%"
+        if e3_size_increases
+        else "—"
+    )
     e2_safe_md = "\n".join(
         f"| {row['case']} | {row['first_status']} | {row['resume_status']} | "
         f"{'✅' if row['output_consistent'] == 'True' else '❌'} | "
@@ -274,7 +307,7 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
         if env["git_dirty"]
         else ""
     )
-    return f"""# STP 实验汇总（E1–E6）
+    return f"""# STP 实验汇总（E1–E6 主实验）
 
 - 环境：Python {env['python']}，{env['platform']}
 - stp：{env['stp_version']}
@@ -282,6 +315,7 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
 - 时间：{env['timestamp_utc']}
 
 > 主实验全部使用 MockLLM + 确定性函数/工具，不依赖网络。
+> E7 真实模型冒烟验证（Ollama qwen2.5:1.5b，3 次）为补充验证，不并入本表，见 `results/e7_ollama_smoke.md`。
 {workspace_note}
 
 ## RQ 映射
@@ -290,7 +324,7 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
 |---|---|---|
 | RQ1 双模式等价性 | E1 | {e1_eq}/{e1_total}（{e1_eq / e1_total * 100:.1f}%）等价 |
 | RQ2 统一运行时收益 | E5 | {e5_note} |
-| RQ3 运行时与检查点开销 | E3 | 每步额外开销约 1.6–2.2 ms；20 步加密模式 p95 约 53 ms |
+| RQ3 运行时与检查点开销 | E3 | {e3_note} |
 | RQ4 恢复有效性 | E2 | 安全恢复 {e2_safe_success}/{len(e2_safe)}；危险拒绝 {e2_danger_correct}/{len(e2_danger)}；重复执行 {e2_duplicate_rate:.1f}% |
 | RQ5 静态校验有效性 | E4 | {e4_matched}/{len(e4_invalid)} 命中预期错误；执行前拒绝 {e4_runtime}/{len(e4_invalid)}；误报 {e4_false_positive} |
 {e6_rq_row}
@@ -354,7 +388,7 @@ def _summary_markdown(results: Path, env: dict[str, Any]) -> str:
 2. **统一运行时**：90% 核心 LOC 在共享运行时，前端只占 10%；前端没有事件发射和校验实现，只负责构建 TaskIR。
 3. **恢复**：安全场景 4/4 成功，已完成步骤重复执行 0；危险场景 5/5 正确拒绝。
 4. **静态校验**：7/7 非法计划在执行前被拦截，合法基线 0 误报。
-5. **开销**：检查点每步约 1.6–2.2 ms；加密带来的耗时差异在噪声内，文件大小约增加 35%–40%。
+5. **开销**：检查点{e3_note}；加密带来的耗时差异在噪声内，文件大小约增加 {e3_size_note}。
 {e6_interpretation}
 
 ## 威胁与边界
@@ -375,6 +409,7 @@ results/
 ├── e3_overhead.csv / e3_summary.md
 ├── e4_validation.csv / e4_summary.md
 ├── e5_modules.csv / e5_capabilities.csv / e5_summary.md
+├── e7_ollama_smoke.json / e7_ollama_smoke.md
 ├── summary_all.md
 ├── tables.tex
 └── env.json
